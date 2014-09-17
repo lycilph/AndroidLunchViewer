@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Lunch Viewer</string>
+    <string name="previous_week_label">Previous</string>
+    <string name="current_week_label">Current</string>
+    <string name="next_week_label">Next</string>
+    <string name="header_label">Menu for Week %d</string>
+    <string name="action_refresh">Refresh</string>
+
+</resources>
