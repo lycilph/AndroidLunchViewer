@@ -1,0 +1,28 @@
+package com.lycilph.lunchviewer;
+
+import com.google.gson.annotations.SerializedName;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
+public class WeekMenuItem {
+    @SerializedName("id")
+    private String id;
+
+    @SerializedName("text")
+    private String text;
+
+    @SerializedName("link")
+    private String link;
+
+    @SerializedName("date")
+    private String date;
+
+    public WeekMenuItem() { }
+
+    @Override
+    public String toString() {
+        DateTime dt = new DateTime(date).withZone(DateTimeZone.forID("UTC"));
+        return String.format("%s (%s) %s of week %d", text, link, dt.dayOfWeek().getAsText(), dt.weekOfWeekyear().get());
+    }
+}

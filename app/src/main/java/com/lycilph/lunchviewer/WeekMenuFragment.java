@@ -1,7 +1,6 @@
 package com.lycilph.lunchviewer;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.app.ListFragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,45 +9,27 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
-import android.widget.ListAdapter;
 import android.widget.TextView;
 
-import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
-import com.microsoft.windowsazure.mobileservices.MobileServiceTable;
-import com.microsoft.windowsazure.mobileservices.ServiceFilterResponse;
-import com.microsoft.windowsazure.mobileservices.TableQueryCallback;
-
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * A fragment representing a list of Items.
- * <p />
- * Large screen devices (such as tablets) are supported by replacing the ListView
- * with a GridView.
- * <p />
- * Activities containing this fragment MUST implement the {@link Callbacks}
- * interface.
- */
-public class WeekMenuFragment extends ListFragment implements AbsListView.OnItemClickListener {
-
-    private static final String ARG_WEEK_NUMBER = "-1";
-    private int weekNumber;
+public class WeekMenuFragment extends ListFragment implements AbsListView.OnItemClickListener, WeekMenu.onWeekMenuUpdatedListener {
+    private static final String TAG = "WeekMenuFragment";
+    private static final String ARG_WEEK_MENU = "ARG_POSITION";
+    private WeekMenu weekMenu;
 
     private OnFragmentInteractionListener mListener;
     private AbsListView mListView;
     private WeekMenuAdapter mAdapter;
 
-    public static WeekMenuFragment newInstance(int week) {
+    public static WeekMenuFragment newInstance(WeekMenu wm) {
         WeekMenuFragment fragment = new WeekMenuFragment();
         Bundle args = new Bundle();
-        args.putInt(ARG_WEEK_NUMBER, week);
+        args.putString(ARG_WEEK_MENU, wm.toJson());
         fragment.setArguments(args);
         return fragment;
     }
-
-    public int getWeekNumber() { return weekNumber; }
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -61,30 +42,16 @@ public class WeekMenuFragment extends ListFragment implements AbsListView.OnItem
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            weekNumber = getArguments().getInt(ARG_WEEK_NUMBER);
+            weekMenu = WeekMenu.fromJson(getArguments().getString(ARG_WEEK_MENU));
+            weekMenu.setUpdateListener(this);
         }
+
+        //MainActivity ma = (MainActivity) getActivity();
+        //WeekMenu currentWeekMenu = ma.currentWeekMenu;
 
         List<WeekMenu> wm = new ArrayList<WeekMenu>();
 
         mAdapter = new WeekMenuAdapter(wm, getActivity());
-
-        /*try {
-            MobileServiceClient mClient = new MobileServiceClient("https://lunchviewer.azure-mobile.net/", "SVzovNQtJGFXALLJDUskHXIZqDSBwL46", getActivity());
-            MobileServiceTable<WeekMenu> menuTable = mClient.getTable("Menu", WeekMenu.class);
-
-            menuTable.execute(new TableQueryCallback<WeekMenu>() {
-                public void onCompleted(List<WeekMenu> result, int count, Exception exception, ServiceFilterResponse response) {
-                    if (exception == null) {
-                        mAdapter.Update(result);
-                    } else {
-                        Log.e("LunchViewer", exception.getMessage());
-                    }
-                }
-            });
-
-        } catch (MalformedURLException e) {
-            Log.d("Test", e.getMessage());
-        }*/
     }
 
     @Override
@@ -92,7 +59,7 @@ public class WeekMenuFragment extends ListFragment implements AbsListView.OnItem
         View view = inflater.inflate(R.layout.fragment_weekmenu, container, false);
 
         // Get the header
-        String header = String.format(getString(R.string.header_label), weekNumber);
+        String header = String.format(getString(R.string.header_label), weekMenu.getWeek());
 
         // Set the header
         TextView tv = (TextView) view.findViewById(R.id.header);
@@ -136,6 +103,11 @@ public class WeekMenuFragment extends ListFragment implements AbsListView.OnItem
         }
     }
 
+    @Override
+    public void onUpdated() {
+        Log.i(TAG, "Menu updated");
+    }
+
     /**
     * This interface must be implemented by activities that contain this
     * fragment to allow an interaction in this fragment to be communicated
@@ -147,7 +119,6 @@ public class WeekMenuFragment extends ListFragment implements AbsListView.OnItem
     * >Communicating with Other Fragments</a> for more information.
     */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         public void onFragmentInteraction(String id);
     }
 }
