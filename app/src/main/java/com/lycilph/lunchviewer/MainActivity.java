@@ -21,6 +21,8 @@ import com.microsoft.windowsazure.mobileservices.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.TableJsonQueryCallback;
 import com.microsoft.windowsazure.mobileservices.TableQueryCallback;
 
+import org.joda.time.DateTime;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -51,9 +53,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Wee
     SectionsPagerAdapter mSectionsPagerAdapter;
     ViewPager mViewPager;
 
-    WeekMenu previousWeekMenu;
-    WeekMenu currentWeekMenu;
-    WeekMenu nextWeekMenu;
+    List<WeekMenu> menus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -109,18 +109,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Wee
     protected void onResume() {
         super.onResume();
 
-        // Find week numbers
-        /*Calendar now = Calendar.getInstance();
-        int currentWeek = now.get(Calendar.WEEK_OF_YEAR);
-        now.add(Calendar.WEEK_OF_YEAR, -1);
-        int previousWeek = now.get(Calendar.WEEK_OF_YEAR);
-        now.add(Calendar.WEEK_OF_YEAR, 2);
-        int nextWeek = now.get(Calendar.WEEK_OF_YEAR);
-
-        Log.i(TAG, "Previous week number " + previousWeek);
-        Log.i(TAG, "Current week number " + currentWeek);
-        Log.i(TAG, "Next week number " + nextWeek);*/
-
         // Load file here and parse saved data
         File file = new File(getFilesDir(), FILENAME);
         if (file.exists()) {
@@ -143,20 +131,12 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Wee
                 e.printStackTrace();
             }
             Gson gson = new Gson();
-            WeekMenu[] menus = gson.fromJson(json, WeekMenu[].class);
-            previousWeekMenu = menus[0];
-            currentWeekMenu = menus[1];
-            nextWeekMenu = menus[2];
-
-            Log.i(TAG,json);
+            WeekMenu[] savedMenus = gson.fromJson(json, WeekMenu[].class);
+            menus = Arrays.asList(savedMenus);
         } else {
             Log.i(TAG, "No saved file found");
-            previousWeekMenu = new WeekMenu();
-            currentWeekMenu = new WeekMenu();
-            nextWeekMenu = new WeekMenu();
+            menus = Arrays.asList(new WeekMenu[] {new WeekMenu(), new WeekMenu(), new WeekMenu()});
         }
-
-        loadMenus();
     }
 
     @Override
@@ -165,7 +145,6 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Wee
 
         // Save data here
         File file = new File(getFilesDir(), FILENAME);
-        List<WeekMenu> menus = Arrays.asList(previousWeekMenu, currentWeekMenu, nextWeekMenu);
         Gson gson = new Gson();
         String json = gson.toJson(menus);
         try {
@@ -192,30 +171,54 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Wee
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
         if (id == R.id.action_refresh) {
-            loadMenus();
+            refreshMenus();
+            return true;
+        } else if (id == R.id.action_clear) {
+            clearMenus();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void loadMenus() {
-        Log.i(TAG, "Loading menus");
-            /*menuTable.execute(new TableQueryCallback<WeekMenu>() {
-                public void onCompleted(List<WeekMenu> result, int count, Exception exception, ServiceFilterResponse response) {
-                    if (exception == null) {
-                        for (WeekMenu wm : result) {
-                            loadMenuItems(wm);
-                        }
-                    } else {
-                        Log.e(TAG, exception.getMessage());
-                    }
-                }
-            });*/
-        menuTable.where().field("Week").eq(38).execute(new TableQueryCallback<WeekMenu>() {
+    private void refreshMenus() {
+        for (int i = 0; i <= 2; i++) {
+            refreshMenu(menus.get(i), i-1);
+        }
+    }
+
+    private void clearMenus() {
+        for (WeekMenu menu : menus) {
+            menu.clear();
+        }
+    }
+
+    private void refreshMenu(WeekMenu menu, int weekOffset)
+    {
+        Log.i(TAG, "Refreshing menu " + menu.toString());
+
+        DateTime dt = new DateTime();
+        int week = dt.plusWeeks(weekOffset).weekOfWeekyear().get();
+
+        if (menu.getWeek() != week) {
+            Log.i(TAG, "Menu out of date");
+            loadMenu(menu, week);
+        } else {
+            Log.i(TAG, "Menu up to date");
+        }
+    }
+
+    private void loadMenu(final WeekMenu menuToUpdate, final int newWeekNumber) {
+        Log.i(TAG, "Loading menu for week " + newWeekNumber);
+
+        menuTable.where().field("Week").eq(newWeekNumber).execute(new TableQueryCallback<WeekMenu>() {
             public void onCompleted(List<WeekMenu> result, int count, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
+                    if (result.isEmpty()) {
+                        Log.i(TAG, "No menu found for week " + newWeekNumber);
+                    }
+
                     for (WeekMenu wm : result) {
-                        loadMenuItems(wm);
+                        loadMenuItems(menuToUpdate, wm);
                     }
                 } else {
                     Log.e(TAG, exception.getMessage());
@@ -225,19 +228,19 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Wee
         });
     }
 
-    private void loadMenuItems(final WeekMenu wm) {
-        Log.i(TAG, "Loading items for " + wm.toString());
+    private void loadMenuItems(final WeekMenu menuToUpdate, final WeekMenu newWeekMenu) {
+        Log.i(TAG, "Loading items for " + newWeekMenu.toString());
 
         MobileServiceQuery<TableQueryCallback<WeekMenuItem>> query = menuItemTable.where();
-        query.setQueryText(String.format("ParentId eq guid'%s'", wm.getMenuId()));
+        query.setQueryText(String.format("ParentId eq guid'%s'", newWeekMenu.getMenuId()));
         query.execute(new TableQueryCallback<WeekMenuItem>() {
             public void onCompleted(List<WeekMenuItem> result, int count, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
                     for (WeekMenuItem item : result) {
                         Log.i(TAG, "Found item " + item.toString());
                     }
-                    wm.setItems(result);
-                    currentWeekMenu.Update(wm);
+                    newWeekMenu.setItems(result);
+                    menuToUpdate.update(newWeekMenu);
                 } else {
                     Log.e(TAG, exception.getMessage());
                     exception.printStackTrace();
@@ -261,6 +264,10 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Wee
     @Override
     public void onFragmentInteraction(String id) {}
 
+    public WeekMenu getMenu(int position) {
+        return menus.get(position);
+    }
+
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
@@ -268,12 +275,7 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Wee
 
         @Override
         public Fragment getItem(int position) {
-            switch (position) {
-                case 0: return WeekMenuFragment.newInstance(previousWeekMenu);
-                case 1: return WeekMenuFragment.newInstance(currentWeekMenu);
-                case 2: return WeekMenuFragment.newInstance(nextWeekMenu);
-            }
-            return null;
+            return WeekMenuFragment.newInstance(position);
         }
 
         @Override

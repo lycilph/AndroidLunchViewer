@@ -22,7 +22,10 @@ public class WeekMenuItem {
 
     @Override
     public String toString() {
-        DateTime dt = new DateTime(date).withZone(DateTimeZone.forID("UTC"));
+        DateTime dt = getDate();
         return String.format("%s (%s) %s of week %d", text, link, dt.dayOfWeek().getAsText(), dt.weekOfWeekyear().get());
     }
+
+    public String getText() { return text; }
+    public DateTime getDate() { return new DateTime(date).withZone(DateTimeZone.forID("UTC")); }
 }

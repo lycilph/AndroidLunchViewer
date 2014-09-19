@@ -3,11 +3,13 @@ package com.lycilph.lunchviewer;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 
+import org.modelmapper.ModelMapper;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 public class WeekMenu {
-
     @SerializedName("id")
     private String id;
 
@@ -21,43 +23,40 @@ public class WeekMenu {
     private String menuId;
 
     private List<WeekMenuItem> items;
-    private onWeekMenuUpdatedListener listener;
+    private transient onWeekMenuUpdatedListener listener;
 
-    public WeekMenu() { }
-
-    public final void setId(String i) { id = i; }
+    public WeekMenu() {
+        items = new ArrayList<WeekMenuItem>();
+    }
 
     public String getId() { return id; }
+    public final void setId(String i) { id = i; }
 
+    public int getYear() { return year; }
     public final void setYear(int y) { year = y; }
 
-    public int getYear() {
-        return year;
-    }
-
-    public final void setWeek(int w) {
-        week = w;
-    }
-
-    public int getWeek() {
-        return week;
-    }
-
-    public final void setMenuId(String i) { menuId = i; }
+    public int getWeek() { return week; }
+    public final void setWeek(int w) { week = w; }
 
     public String getMenuId() { return menuId; }
-
-    public final void setItems(List<WeekMenuItem> i) { items = i; }
+    public final void setMenuId(String id) { menuId = id; }
 
     public List<WeekMenuItem> getItems() { return items; }
+    public final void setItems(List<WeekMenuItem> i) { items = i; }
 
     public void setUpdateListener(onWeekMenuUpdatedListener l) { listener = l; }
 
-    public void Update(WeekMenu wm) {
-        // Update stuff here
+    public void update(WeekMenu wm) {
+        ModelMapper mm = new ModelMapper();
+        mm.map(wm, this);
+
         if (listener != null) {
             listener.onUpdated();
         }
+    }
+
+    public void clear() {
+        update(new WeekMenu());
     }
 
     @Override
@@ -67,7 +66,7 @@ public class WeekMenu {
 
     @Override
     public boolean equals(Object o) {
-        return o instanceof WeekMenu && ((WeekMenu) o).id == id;
+        return o instanceof WeekMenu && ((WeekMenu) o).id.equals(id);
     }
 
     public interface onWeekMenuUpdatedListener {
