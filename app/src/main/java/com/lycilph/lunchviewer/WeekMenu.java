@@ -1,13 +1,9 @@
 package com.lycilph.lunchviewer;
 
-import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
-
-import org.modelmapper.ModelMapper;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class WeekMenu {
     @SerializedName("id")
@@ -23,7 +19,6 @@ public class WeekMenu {
     private String menuId;
 
     private List<WeekMenuItem> items;
-    private transient onWeekMenuUpdatedListener listener;
 
     public WeekMenu() {
         items = new ArrayList<WeekMenuItem>();
@@ -44,19 +39,8 @@ public class WeekMenu {
     public List<WeekMenuItem> getItems() { return items; }
     public final void setItems(List<WeekMenuItem> i) { items = i; }
 
-    public void setUpdateListener(onWeekMenuUpdatedListener l) { listener = l; }
-
-    public void update(WeekMenu wm) {
-        ModelMapper mm = new ModelMapper();
-        mm.map(wm, this);
-
-        if (listener != null) {
-            listener.onUpdated();
-        }
-    }
-
-    public void clear() {
-        update(new WeekMenu());
+    public WeekMenuItem getItem(int position) {
+        return items.get(position);
     }
 
     @Override
@@ -67,9 +51,5 @@ public class WeekMenu {
     @Override
     public boolean equals(Object o) {
         return o instanceof WeekMenu && ((WeekMenu) o).id.equals(id);
-    }
-
-    public interface onWeekMenuUpdatedListener {
-        public void onUpdated();
     }
 }

@@ -5,7 +5,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeComparator;
+import org.joda.time.DateTimeZone;
 
 import java.util.List;
 
@@ -27,26 +32,32 @@ public class WeekMenuItemAdapter extends ArrayAdapter<WeekMenuItem> {
             v = inflater.inflate(R.layout.week_menu_item_layout, null);
         }
 
-        WeekMenuItem item = this.getItem(position);
+        WeekMenuItem item = getItem(position);
 
         String day = item.getDate().dayOfWeek().getAsShortText();
-        TextView dayTv = (TextView) v.findViewById(R.id.Day);
+        TextView dayTv = (TextView) v.findViewById(R.id.day);
         dayTv.setText(day);
 
-        TextView textTv = (TextView) v.findViewById(R.id.Text);
+        TextView textTv = (TextView) v.findViewById(R.id.text);
         textTv.setText(item.getText());
 
-        /*if (position % 3 == 0) {
+        DateTime lunchEnd = DateTime.now(DateTimeZone.forID("Europe/Copenhagen")).withTime(13, 15, 0, 0);
+        DateTime nextLunchDate = DateTime.now(DateTimeZone.forID("Europe/Copenhagen"));
+        if (lunchEnd.isBeforeNow()) {
+            nextLunchDate = nextLunchDate.plusDays(1);
+        }
+
+        if (DateTimeComparator.getDateOnlyInstance().compare(item.getDate(), nextLunchDate.withZone(DateTimeZone.forID("UTC"))) == 0) {
             LinearLayout ll = (LinearLayout) v.findViewById(R.id.selection_bar);
             ll.setVisibility(View.VISIBLE);
-        }*/
+        }
 
         return v;
     }
 
-    public void Update(List<WeekMenuItem> weekMenuItems) {
+    public void update(List<WeekMenuItem> items) {
         clear();
-        addAll(weekMenuItems);
+        addAll(items);
         notifyDataSetChanged();
     }
 }

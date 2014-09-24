@@ -2,11 +2,13 @@
 <resources>
 
     <string name="app_name">Lunch Viewer</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="action_clear">Clear</string>
     <string name="previous_week_label">Previous</string>
     <string name="current_week_label">Current</string>
     <string name="next_week_label">Next</string>
     <string name="header_label">Menu for Week %d</string>
-    <string name="action_refresh">Refresh</string>
-    <string name="action_clear">Clear</string>
+    <string name="no_menus_label">No menus!</string>
+    <string name="menu_update_event">LunchViewer-MenuUpdateEvent</string>
 
 </resources>

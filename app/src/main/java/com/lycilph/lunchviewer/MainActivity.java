@@ -1,24 +1,26 @@
 package com.lycilph.lunchviewer;
 
-import android.app.ActionBar;
 import android.app.Activity;
-import android.app.Fragment;
 import android.app.FragmentManager;
-import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.v13.app.FragmentPagerAdapter;
-import android.support.v4.view.ViewPager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.MobileServiceQuery;
 import com.microsoft.windowsazure.mobileservices.MobileServiceTable;
+import com.microsoft.windowsazure.mobileservices.NextServiceFilterCallback;
+import com.microsoft.windowsazure.mobileservices.ServiceFilter;
+import com.microsoft.windowsazure.mobileservices.ServiceFilterRequest;
 import com.microsoft.windowsazure.mobileservices.ServiceFilterResponse;
-import com.microsoft.windowsazure.mobileservices.TableJsonQueryCallback;
+import com.microsoft.windowsazure.mobileservices.ServiceFilterResponseCallback;
 import com.microsoft.windowsazure.mobileservices.TableQueryCallback;
 
 import org.joda.time.DateTime;
@@ -29,197 +31,183 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Array;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
 
-public class MainActivity extends Activity implements ActionBar.TabListener, WeekMenuFragment.OnFragmentInteractionListener {
+public class MainActivity extends Activity implements FragmentManager.OnBackStackChangedListener, WeekMenuFragment.OnItemSelectedListener {
     private static final String TAG = "MainActivity";
-    private static final String FILENAME = "menus.txt";
 
-    MobileServiceClient mClient;
-    MobileServiceTable<WeekMenu> menuTable;
-    MobileServiceTable<WeekMenuItem> menuItemTable;
+    private MobileServiceClient mobileClient;
+    private MobileServiceTable<WeekMenu> menuTable;
+    private MobileServiceTable<WeekMenuItem> menuItemTable;
 
-    SectionsPagerAdapter mSectionsPagerAdapter;
-    ViewPager mViewPager;
+    private ProgressBar progressBar;
 
-    List<WeekMenu> menus;
+    private DataFragment dataFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Set up the action bar.
-        final ActionBar actionBar = getActionBar();
-        actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
+        progressBar = (ProgressBar) findViewById(R.id.progress_bar);
+        progressBar.setVisibility(View.INVISIBLE);
 
-        // Create the adapter that will return a fragment for each of the three
-        // primary sections of the activity.
-        mSectionsPagerAdapter = new SectionsPagerAdapter(getFragmentManager());
-
-        // Set up the ViewPager with the sections adapter.
-        mViewPager = (ViewPager) findViewById(R.id.pager);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
-
-        // When swiping between different sections, select the corresponding
-        // tab. We can also use ActionBar.Tab#select() to do this if we have
-        // a reference to the Tab.
-        mViewPager.setOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
-            @Override
-            public void onPageSelected(int position) {
-                actionBar.setSelectedNavigationItem(position);
-            }
-        });
-
-        // For each of the sections in the app, add a tab to the action bar.
-        for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
-            // Create a tab with text corresponding to the page title defined by
-            // the adapter. Also specify this Activity object, which implements
-            // the TabListener interface, as the callback (listener) for when
-            // this tab is selected.
-            actionBar.addTab(
-                    actionBar.newTab()
-                            .setText(mSectionsPagerAdapter.getPageTitle(i))
-                            .setTabListener(this));
+        dataFragment = (DataFragment) getFragmentManager().findFragmentByTag("data");
+        if (dataFragment == null) {
+            dataFragment = new DataFragment();
+            getFragmentManager()
+                    .beginTransaction()
+                    .add(dataFragment, "data")
+                    .commit();
+        } else {
+            Log.i(TAG, "Retained data found");
         }
 
-        mViewPager.setCurrentItem(1);
+        if (savedInstanceState == null) {
+            MasterFragment mf = MasterFragment.newInstance();
+            getFragmentManager()
+                    .beginTransaction()
+                    .add(R.id.fragment_container, mf)
+                    .commit();
+        }
 
         try {
-            mClient = new MobileServiceClient("https://lunchviewer.azure-mobile.net/", "SVzovNQtJGFXALLJDUskHXIZqDSBwL46", this);
-            menuTable = mClient.getTable("Menu", WeekMenu.class);
-            menuItemTable = mClient.getTable("Item", WeekMenuItem.class);
+            mobileClient = new MobileServiceClient("https://lunchviewer.azure-mobile.net/", "SVzovNQtJGFXALLJDUskHXIZqDSBwL46", this).withFilter(new ProgressFilter());
+            menuTable = mobileClient.getTable("Menu", WeekMenu.class);
+            menuItemTable = mobileClient.getTable("Item", WeekMenuItem.class);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-
-        // Load file here and parse saved data
-        File file = new File(getFilesDir(), FILENAME);
-        if (file.exists()) {
-            Log.i(TAG, "Reading saved file");
-
-            String json = new String();
-            try {
-                FileReader fr = new FileReader(file);
-                BufferedReader br = new BufferedReader(fr);
-
-                String line;
-                while ((line = br.readLine()) != null) {
-                    json += line;
-                }
-
-                br.close();
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Gson gson = new Gson();
-            WeekMenu[] savedMenus = gson.fromJson(json, WeekMenu[].class);
-            menus = Arrays.asList(savedMenus);
-        } else {
-            Log.i(TAG, "No saved file found");
-            menus = Arrays.asList(new WeekMenu[] {new WeekMenu(), new WeekMenu(), new WeekMenu()});
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        // Save data here
-        File file = new File(getFilesDir(), FILENAME);
-        Gson gson = new Gson();
-        String json = gson.toJson(menus);
-        try {
-            FileWriter fw = new FileWriter(file);
-            fw.write(json);
-            fw.close();
-            Log.i(TAG, "File written");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_refresh) {
-            refreshMenus();
-            return true;
-        } else if (id == R.id.action_clear) {
-            clearMenus();
-            return true;
+        switch (id) {
+            case R.id.action_refresh: {
+                refreshAllMenus();
+                return true;
+            }
+            case R.id.action_clear: {
+                clearAllMenus();
+                return true;
+            }
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void refreshMenus() {
-        for (int i = 0; i <= 2; i++) {
-            refreshMenu(menus.get(i), i-1);
-        }
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        getFragmentManager().addOnBackStackChangedListener(this);
+        shouldDisplayHome();
     }
 
-    private void clearMenus() {
-        for (WeekMenu menu : menus) {
-            menu.clear();
-        }
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        getFragmentManager().removeOnBackStackChangedListener(this);
     }
 
-    private void refreshMenu(WeekMenu menu, int weekOffset)
+    @Override
+    public void onBackStackChanged() {
+        shouldDisplayHome();
+    }
+
+    @Override
+    public boolean onNavigateUp() {
+        getFragmentManager().popBackStack();
+        return true;
+    }
+
+    @Override
+    public void onItemSelected(int position, int item) {
+        DetailsFragment df = DetailsFragment.newInstance(position, item);
+        getFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, df)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void shouldDisplayHome() {
+        boolean canBack = getFragmentManager().getBackStackEntryCount() > 0;
+        getActionBar().setDisplayHomeAsUpEnabled(canBack);
+    }
+
+    public WeekMenu getMenu(int position) {
+        return dataFragment.menus.get(position);
+    }
+
+    public void setMenu(int position, WeekMenu menu)
     {
+        dataFragment.menus.set(position, menu);
+
+        String eventName = getString(R.string.menu_update_event);
+        Intent intent = new Intent(eventName);
+        intent.putExtra("Position", position);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        Log.i(TAG, "Update sent for position " + position);
+    }
+
+    private void refreshAllMenus() {
+        for (int i = 0; i <= 2; i++) {
+            refreshMenu(i, i-1);
+        }
+    }
+
+    private void clearAllMenus() {
+        for (int i = 0; i <= 2; i++) {
+            setMenu(i, new WeekMenu());
+        }
+    }
+
+    private void refreshMenu(int position, int weekOffset) {
+        WeekMenu menu = getMenu(position);
         Log.i(TAG, "Refreshing menu " + menu.toString());
 
-        DateTime dt = new DateTime();
-        int week = dt.plusWeeks(weekOffset).weekOfWeekyear().get();
-
-        if (menu.getWeek() != week) {
-            Log.i(TAG, "Menu out of date");
-            loadMenu(menu, week);
+        DateTime dt = DateTime.now().plusWeeks(weekOffset);
+        int week = dt.weekOfWeekyear().get();
+        int year = dt.year().get();
+        if (menu.getWeek() != week || menu.getItems().isEmpty()) {
+            Log.i(TAG, "Menu out of date or empty");
+            downloadMenu(position, week, year);
         } else {
             Log.i(TAG, "Menu up to date");
         }
     }
 
-    private void loadMenu(final WeekMenu menuToUpdate, final int newWeekNumber) {
-        Log.i(TAG, "Loading menu for week " + newWeekNumber);
+    private void downloadMenu(final int position, final int week, final int year) {
+        Log.i(TAG, String.format("Downloading menu for week %d of year %d", week, year));
 
-        menuTable.where().field("Week").eq(newWeekNumber).execute(new TableQueryCallback<WeekMenu>() {
+        menuTable.where().field("Week").eq(week)
+                   .and().field("Year").eq(year)
+                 .execute(new TableQueryCallback<WeekMenu>() {
             public void onCompleted(List<WeekMenu> result, int count, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
                     if (result.isEmpty()) {
-                        Log.i(TAG, "No menu found for week " + newWeekNumber);
+                        Log.i(TAG, "No menu found for week " + week);
+                        WeekMenu menu = new WeekMenu();
+                        menu.setWeek(week);
+                        menu.setYear(year);
+                        setMenu(position, menu);
+                        return;
+                    }
+                    if (result.size() > 1) {
+                        Log.i(TAG, "Multiple menus found for week " + week + " (only first is used)");
                     }
 
-                    for (WeekMenu wm : result) {
-                        loadMenuItems(menuToUpdate, wm);
-                    }
+                    downloadMenuItems(position, result.get(0));
                 } else {
                     Log.e(TAG, exception.getMessage());
                     exception.printStackTrace();
@@ -228,19 +216,20 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Wee
         });
     }
 
-    private void loadMenuItems(final WeekMenu menuToUpdate, final WeekMenu newWeekMenu) {
-        Log.i(TAG, "Loading items for " + newWeekMenu.toString());
+    private void downloadMenuItems(final int position, final WeekMenu menu) {
+        Log.i(TAG, "Downloading items for " + menu.toString());
 
         MobileServiceQuery<TableQueryCallback<WeekMenuItem>> query = menuItemTable.where();
-        query.setQueryText(String.format("ParentId eq guid'%s'", newWeekMenu.getMenuId()));
+        query.setQueryText(String.format("ParentId eq guid'%s'", menu.getMenuId()));
+
         query.execute(new TableQueryCallback<WeekMenuItem>() {
             public void onCompleted(List<WeekMenuItem> result, int count, Exception exception, ServiceFilterResponse response) {
                 if (exception == null) {
                     for (WeekMenuItem item : result) {
                         Log.i(TAG, "Found item " + item.toString());
                     }
-                    newWeekMenu.setItems(result);
-                    menuToUpdate.update(newWeekMenu);
+                    menu.setItems(result);
+                    setMenu(position, menu);
                 } else {
                     Log.e(TAG, exception.getMessage());
                     exception.printStackTrace();
@@ -249,50 +238,40 @@ public class MainActivity extends Activity implements ActionBar.TabListener, Wee
         });
     }
 
-    @Override
-    public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-        // When the given tab is selected, switch to the corresponding page in the ViewPager.
-        mViewPager.setCurrentItem(tab.getPosition());
-    }
-
-    @Override
-    public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {}
-
-    @Override
-    public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {}
-
-    @Override
-    public void onFragmentInteraction(String id) {}
-
-    public WeekMenu getMenu(int position) {
-        return menus.get(position);
-    }
-
-    public class SectionsPagerAdapter extends FragmentPagerAdapter {
-        public SectionsPagerAdapter(FragmentManager fm) {
-            super(fm);
-        }
+    private class ProgressFilter implements ServiceFilter {
 
         @Override
-        public Fragment getItem(int position) {
-            return WeekMenuFragment.newInstance(position);
-        }
+        public void handleRequest(ServiceFilterRequest request,
+                                  NextServiceFilterCallback nextServiceFilterCallback,
+                                  final ServiceFilterResponseCallback responseCallback) {
+            runOnUiThread(new Runnable() {
 
-        @Override
-        public int getCount() { return 3; }
+                @Override
+                public void run() {
+                    if (progressBar != null)
+                        progressBar.setVisibility(ProgressBar.VISIBLE);
+                }
+            });
 
-        @Override
-        public CharSequence getPageTitle(int position) {
-            Locale l = Locale.getDefault();
-            switch (position) {
-                case 0:
-                    return getString(R.string.previous_week_label).toUpperCase(l);
-                case 1:
-                    return getString(R.string.current_week_label).toUpperCase(l);
-                case 2:
-                    return getString(R.string.next_week_label).toUpperCase(l);
-            }
-            return null;
+            nextServiceFilterCallback.onNext(request, new ServiceFilterResponseCallback() {
+
+                @Override
+                public void onResponse(ServiceFilterResponse response, Exception exception) {
+                    runOnUiThread(new Runnable() {
+
+                        @Override
+                        public void run() {
+                            if (progressBar != null)
+                                progressBar.setVisibility(ProgressBar.INVISIBLE);
+
+                            Toast.makeText(MainActivity.this, "Update done!", Toast.LENGTH_SHORT)
+                                 .show();
+                        }
+                    });
+
+                    if (responseCallback != null)  responseCallback.onResponse(response, exception);
+                }
+            });
         }
     }
 }

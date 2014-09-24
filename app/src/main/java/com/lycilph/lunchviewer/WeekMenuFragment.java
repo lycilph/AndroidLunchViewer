@@ -2,28 +2,32 @@ package com.lycilph.lunchviewer;
 
 import android.app.Activity;
 import android.app.ListFragment;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
+import android.widget.ListView;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class WeekMenuFragment extends ListFragment implements AbsListView.OnItemClickListener, WeekMenu.onWeekMenuUpdatedListener {
+public class WeekMenuFragment extends ListFragment {
     private static final String TAG = "WeekMenuFragment";
     private static final String ARG_POSITION = "ARG_POSITION";
-    private WeekMenu weekMenu;
 
-    private OnFragmentInteractionListener mListener;
-    private AbsListView mListView;
-    private WeekMenuItemAdapter mAdapter;
+    private OnItemSelectedListener listener;
+    private AbsListView listView;
+    private WeekMenuItemAdapter itemAdapter;
+
+    private int position;
 
     public static WeekMenuFragment newInstance(int position) {
         WeekMenuFragment fragment = new WeekMenuFragment();
@@ -33,10 +37,6 @@ public class WeekMenuFragment extends ListFragment implements AbsListView.OnItem
         return fragment;
     }
 
-    /**
-     * Mandatory empty constructor for the fragment manager to instantiate the
-     * fragment (e.g. upon screen orientation changes).
-     */
     public WeekMenuFragment() {}
 
     @Override
@@ -44,39 +44,20 @@ public class WeekMenuFragment extends ListFragment implements AbsListView.OnItem
         super.onCreate(savedInstanceState);
 
         if (getArguments() != null) {
-            int position = getArguments().getInt(ARG_POSITION);
-            MainActivity ma = (MainActivity) getActivity();
-            weekMenu = ma.getMenu(position);
-            weekMenu.setUpdateListener(this);
+            position = getArguments().getInt(ARG_POSITION);
         }
 
-        List<WeekMenuItem> items = new ArrayList<WeekMenuItem>(weekMenu.getItems());
-        mAdapter = new WeekMenuItemAdapter(items, getActivity());
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-
-        if (weekMenu != null) {
-            weekMenu.setUpdateListener(null);
-        }
+        List<WeekMenuItem> items = new ArrayList<WeekMenuItem>();
+        itemAdapter = new WeekMenuItemAdapter(items, getActivity());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_weekmenu, container, false);
 
-        // Set the header
-        TextView tv = (TextView) view.findViewById(R.id.header);
-        updateText(tv);
-
         // Set the adapter
-        mListView = (AbsListView) view.findViewById(android.R.id.list);
-        mListView.setAdapter(mAdapter);
-
-        // Set OnItemClickListener so we can be notified on item clicks
-        mListView.setOnItemClickListener(this);
+        listView = (AbsListView) view.findViewById(android.R.id.list);
+        listView.setAdapter(itemAdapter);
 
         return view;
     }
@@ -84,61 +65,72 @@ public class WeekMenuFragment extends ListFragment implements AbsListView.OnItem
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
+
         try {
-            mListener = (OnFragmentInteractionListener) activity;
+            listener = (OnItemSelectedListener) activity;
         } catch (ClassCastException e) {
-            throw new ClassCastException(activity.toString()
-                + " must implement OnFragmentInteractionListener");
+            throw new ClassCastException(activity.toString() + " must implement OnItemSelectedListener");
         }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+
+        String eventName = getActivity().getString(R.string.menu_update_event);
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(messageReceiver, new IntentFilter(eventName));
+
+        update();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(messageReceiver);
+
+        itemAdapter.clear();
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+        listener = null;
     }
 
-
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (null != mListener) {
-            // Notify the active callbacks interface (the activity, if the
-            // fragment is attached to one) that an item has been selected.
-            //mListener.onFragmentInteraction(DummyContent.ITEMS.get(position).id);
-            mListener.onFragmentInteraction("Test");
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        if (listener != null) {
+            listener.onItemSelected(this.position, position);
         }
     }
 
-    @Override
-    public void onUpdated() {
-        Log.i(TAG, "Menu updated");
+    private void update() {
+        MainActivity ma = (MainActivity) getActivity();
+        WeekMenu menu = ma.getMenu(position);
 
         if (getView() != null) {
             TextView tv = (TextView) getView().findViewById(R.id.header);
-            updateText(tv);
+            String header = String.format(getString(R.string.header_label), menu.getWeek());
+            tv.setText(header);
 
-            mAdapter.Update(weekMenu.getItems());
+            itemAdapter.update(menu.getItems());
         } else {
-            Log.i(TAG, "No view found for fragment belonging to menu " + weekMenu.toString());
+            Log.i(TAG, "No view found for fragment belonging to menu " + menu.toString());
         }
     }
 
-    private void updateText(TextView view) {
-        String header = String.format(getString(R.string.header_label), weekMenu.getWeek());
-        view.setText(header);
-    }
+    private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int positionForUpdate = intent.getIntExtra("Position", -1);
+            if (positionForUpdate == position) {
+                Log.i(TAG, "Updating menu for position " + positionForUpdate);
+                update();
+            }
+        }
+    };
 
-    /**
-    * This interface must be implemented by activities that contain this
-    * fragment to allow an interaction in this fragment to be communicated
-    * to the activity and potentially other fragments contained in that
-    * activity.
-    * <p>
-    * See the Android Training lesson <a href=
-    * "http://developer.android.com/training/basics/fragments/communicating.html"
-    * >Communicating with Other Fragments</a> for more information.
-    */
-    public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(String id);
+    public interface OnItemSelectedListener {
+        public void onItemSelected(int position, int item);
     }
 }

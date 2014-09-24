@@ -2,9 +2,9 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="com.lycilph.lunchviewer.WeekMenuFragment">
 
     <TextView
@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@android:style/TextAppearance.Large"
-        android:text="@string/header_label"/>
+        tools:text="Menu for week xx"/>
 
     <FrameLayout
         android:layout_width="match_parent"
@@ -28,6 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:text="No menus found"/>
+            android:text="@string/no_menus_label"/>
     </FrameLayout>
+
 </LinearLayout>

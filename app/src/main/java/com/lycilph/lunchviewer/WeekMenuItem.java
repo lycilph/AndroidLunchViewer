@@ -26,6 +26,15 @@ public class WeekMenuItem {
         return String.format("%s (%s) %s of week %d", text, link, dt.dayOfWeek().getAsText(), dt.weekOfWeekyear().get());
     }
 
-    public String getText() { return text; }
-    public DateTime getDate() { return new DateTime(date).withZone(DateTimeZone.forID("UTC")); }
+    public String getText() {
+        return text;
+    }
+
+    public DateTime getDate() {
+        return new DateTime(date).withZone(DateTimeZone.forID("UTC"));
+    }
+
+    public String getLink() {
+        return link;
+    }
 }
