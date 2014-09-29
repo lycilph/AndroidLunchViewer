@@ -47,7 +47,7 @@ public class WeekMenuItemFragment extends Fragment implements View.OnClickListen
         WeekMenuItem wmi = ma.getMenu(position).getItem(item);
 
         String day = wmi.getDate().dayOfWeek().getAsText();
-        String date = wmi.getDate().toLocalDate().toString();
+        String date = wmi.getDate().toString();
 
         TextView dayTv = (TextView) view.findViewById(R.id.day);
         dayTv.setText(day);

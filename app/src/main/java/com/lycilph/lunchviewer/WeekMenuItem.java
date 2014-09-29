@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 
 public class WeekMenuItem {
     @SerializedName("id")
@@ -22,16 +23,16 @@ public class WeekMenuItem {
 
     @Override
     public String toString() {
-        DateTime dt = getDate();
-        return String.format("%s (%s) %s of week %d", text, link, dt.dayOfWeek().getAsText(), dt.weekOfWeekyear().get());
+        LocalDate ld = getDate();
+        return String.format("%s (%s) %s of week %d", text, link, ld.dayOfWeek().getAsText(), ld.weekOfWeekyear().get());
     }
 
     public String getText() {
         return text;
     }
 
-    public DateTime getDate() {
-        return new DateTime(date).withZone(DateTimeZone.forID("UTC"));
+    public LocalDate getDate() {
+        return new DateTime(date).toLocalDate();
     }
 
     public String getLink() {

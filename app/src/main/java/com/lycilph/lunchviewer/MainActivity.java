@@ -17,11 +17,14 @@ import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.MobileServiceQuery;
 import com.microsoft.windowsazure.mobileservices.MobileServiceTable;
 import com.microsoft.windowsazure.mobileservices.NextServiceFilterCallback;
+import com.microsoft.windowsazure.mobileservices.Registration;
+import com.microsoft.windowsazure.mobileservices.RegistrationCallback;
 import com.microsoft.windowsazure.mobileservices.ServiceFilter;
 import com.microsoft.windowsazure.mobileservices.ServiceFilterRequest;
 import com.microsoft.windowsazure.mobileservices.ServiceFilterResponse;
 import com.microsoft.windowsazure.mobileservices.ServiceFilterResponseCallback;
 import com.microsoft.windowsazure.mobileservices.TableQueryCallback;
+import com.microsoft.windowsazure.notifications.NotificationsManager;
 
 import org.joda.time.DateTime;
 
@@ -37,6 +40,7 @@ import java.util.List;
 
 public class MainActivity extends Activity implements FragmentManager.OnBackStackChangedListener, WeekMenuFragment.OnItemSelectedListener {
     private static final String TAG = "MainActivity";
+    public static final String SENDER_ID = "449754482340";
 
     private MobileServiceClient mobileClient;
     private MobileServiceTable<WeekMenu> menuTable;
@@ -56,13 +60,14 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
 
         dataFragment = (DataFragment) getFragmentManager().findFragmentByTag("data");
         if (dataFragment == null) {
+            Log.i(TAG, "Creating new data fragment");
             dataFragment = new DataFragment();
             getFragmentManager()
                     .beginTransaction()
                     .add(dataFragment, "data")
                     .commit();
         } else {
-            Log.i(TAG, "Retained data found");
+            Log.i(TAG, "Retained data fragment found");
         }
 
         if (savedInstanceState == null) {
@@ -77,6 +82,8 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
             mobileClient = new MobileServiceClient("https://lunchviewer.azure-mobile.net/", "SVzovNQtJGFXALLJDUskHXIZqDSBwL46", this).withFilter(new ProgressFilter());
             menuTable = mobileClient.getTable("Menu", WeekMenu.class);
             menuItemTable = mobileClient.getTable("Item", WeekMenuItem.class);
+
+            NotificationsManager.handleNotifications(this, SENDER_ID, PushNotificationHandler.class);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
@@ -146,12 +153,12 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
     }
 
     public WeekMenu getMenu(int position) {
-        return dataFragment.menus.get(position);
+        return dataFragment.getMenu(position);
     }
 
     public void setMenu(int position, WeekMenu menu)
     {
-        dataFragment.menus.set(position, menu);
+        dataFragment.setMenu(position, menu);
 
         String eventName = getString(R.string.menu_update_event);
         Intent intent = new Intent(eventName);
@@ -232,6 +239,19 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
                     setMenu(position, menu);
                 } else {
                     Log.e(TAG, exception.getMessage());
+                    exception.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public void registerForPush(String gcmRegistrationId) {
+        mobileClient.getPush().register(gcmRegistrationId,null,new RegistrationCallback() {
+            @Override
+            public void onRegister(Registration registration, Exception exception) {
+                if (exception == null) {
+                    Log.i(TAG, "Registration of push notifications done");
+                } else {
                     exception.printStackTrace();
                 }
             }

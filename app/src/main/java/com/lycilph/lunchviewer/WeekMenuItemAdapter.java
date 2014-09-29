@@ -9,8 +9,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeComparator;
-import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
+import org.joda.time.LocalTime;
 
 import java.util.List;
 
@@ -41,13 +41,11 @@ public class WeekMenuItemAdapter extends ArrayAdapter<WeekMenuItem> {
         TextView textTv = (TextView) v.findViewById(R.id.text);
         textTv.setText(item.getText());
 
-        DateTime lunchEnd = DateTime.now(DateTimeZone.forID("Europe/Copenhagen")).withTime(13, 15, 0, 0);
-        DateTime nextLunchDate = DateTime.now(DateTimeZone.forID("Europe/Copenhagen"));
-        if (lunchEnd.isBeforeNow()) {
-            nextLunchDate = nextLunchDate.plusDays(1);
-        }
+        LocalTime lunchEnd = DateTime.now().withTime(13, 15, 0, 0).toLocalTime();
+        LocalTime now = DateTime.now().toLocalTime();
+        LocalDate nextLunchDate = (lunchEnd.isBefore(now) ? DateTime.now().plusDays(1).toLocalDate() : DateTime.now().toLocalDate());
 
-        if (DateTimeComparator.getDateOnlyInstance().compare(item.getDate(), nextLunchDate.withZone(DateTimeZone.forID("UTC"))) == 0) {
+        if (nextLunchDate.compareTo(item.getDate()) == 0) {
             LinearLayout ll = (LinearLayout) v.findViewById(R.id.selection_bar);
             ll.setVisibility(View.VISIBLE);
         }

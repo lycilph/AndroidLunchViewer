@@ -1,10 +1,12 @@
 package com.lycilph.lunchviewer;
 
 import android.app.Fragment;
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,19 +14,28 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.List;
 
 public class DataFragment extends Fragment {
-    private static final String TAG = "DataFragment";
-    private static final String FILENAME = "menus.txt";
+    public static final String FILENAME = "menus.txt";
 
-    List<WeekMenu> menus;
+    private static final String TAG = "DataFragment";
+
+    private List<WeekMenu> menus;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setRetainInstance(true);
+
+        Context ctx = getActivity().getApplicationContext();
+        try {
+            MobileServiceClient mobileClient = new MobileServiceClient("https://lunchviewer.azure-mobile.net/", "SVzovNQtJGFXALLJDUskHXIZqDSBwL46", ctx);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
 
         loadData();
     }
@@ -33,6 +44,14 @@ public class DataFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         saveData();
+    }
+
+    public WeekMenu getMenu(int position) {
+        return menus.get(position);
+    }
+
+    public void setMenu(int position, WeekMenu menu) {
+        menus.set(position, menu);
     }
 
     private void loadData() {
