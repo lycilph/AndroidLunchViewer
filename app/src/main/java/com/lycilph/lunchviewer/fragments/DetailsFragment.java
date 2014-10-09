@@ -1,4 +1,4 @@
-package com.lycilph.lunchviewer;
+package com.lycilph.lunchviewer.fragments;
 
 import android.app.Fragment;
 import android.app.FragmentManager;
@@ -9,8 +9,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.lycilph.lunchviewer.R;
+
 public class DetailsFragment extends Fragment {
-    private static final String TAG = "DetailsFragment";
     private static final String ARG_POSITION = "ARG_POSITION";
     private static final String ARG_ITEM = "ARG_ITEM";
 

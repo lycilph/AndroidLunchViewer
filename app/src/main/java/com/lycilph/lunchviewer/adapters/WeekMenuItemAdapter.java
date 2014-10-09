@@ -1,4 +1,4 @@
-package com.lycilph.lunchviewer;
+package com.lycilph.lunchviewer.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,6 +7,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import com.lycilph.lunchviewer.R;
+import com.lycilph.lunchviewer.models.WeekMenuItem;
 
 import org.joda.time.DateTime;
 import org.joda.time.LocalDate;

@@ -1,4 +1,4 @@
-package com.lycilph.lunchviewer;
+package com.lycilph.lunchviewer.fragments;
 
 import android.app.Activity;
 import android.app.ListFragment;
@@ -7,14 +7,23 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
+import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.lycilph.lunchviewer.R;
+import com.lycilph.lunchviewer.misc.DataService;
+import com.lycilph.lunchviewer.models.WeekMenu;
+import com.lycilph.lunchviewer.models.WeekMenuItem;
+import com.lycilph.lunchviewer.adapters.WeekMenuItemAdapter;
+import com.lycilph.lunchviewer.activities.MainActivity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,8 +33,7 @@ public class WeekMenuFragment extends ListFragment {
     private static final String ARG_POSITION = "ARG_POSITION";
 
     private OnItemSelectedListener listener;
-    private AbsListView listView;
-    private WeekMenuItemAdapter itemAdapter;
+    private WeekMenuItemAdapter adapter;
 
     private int position;
 
@@ -48,16 +56,16 @@ public class WeekMenuFragment extends ListFragment {
         }
 
         List<WeekMenuItem> items = new ArrayList<WeekMenuItem>();
-        itemAdapter = new WeekMenuItemAdapter(items, getActivity());
+        adapter = new WeekMenuItemAdapter(items, getActivity());
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_weekmenu, container, false);
 
         // Set the adapter
-        listView = (AbsListView) view.findViewById(android.R.id.list);
-        listView.setAdapter(itemAdapter);
+        AbsListView listView = (AbsListView) view.findViewById(android.R.id.list);
+        listView.setAdapter(adapter);
 
         return view;
     }
@@ -77,7 +85,7 @@ public class WeekMenuFragment extends ListFragment {
     public void onResume() {
         super.onResume();
 
-        String eventName = getActivity().getString(R.string.menu_update_event);
+        String eventName = getActivity().getString(R.string.data_changed_event);
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(messageReceiver, new IntentFilter(eventName));
 
         update();
@@ -87,8 +95,6 @@ public class WeekMenuFragment extends ListFragment {
     public void onPause() {
         super.onPause();
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(messageReceiver);
-
-        itemAdapter.clear();
     }
 
     @Override
@@ -105,15 +111,16 @@ public class WeekMenuFragment extends ListFragment {
     }
 
     private void update() {
-        MainActivity ma = (MainActivity) getActivity();
-        WeekMenu menu = ma.getMenu(position);
+        MainActivity mainActivity = (MainActivity) getActivity();
+        DataService dataService = mainActivity.getDataService();
+        WeekMenu menu = dataService.getMenu(position);
 
         if (getView() != null) {
             TextView tv = (TextView) getView().findViewById(R.id.header);
             String header = String.format(getString(R.string.header_label), menu.getWeek());
             tv.setText(header);
 
-            itemAdapter.update(menu.getItems());
+            adapter.update(menu.getItems());
         } else {
             Log.i(TAG, "No view found for fragment belonging to menu " + menu.toString());
         }
@@ -122,11 +129,8 @@ public class WeekMenuFragment extends ListFragment {
     private BroadcastReceiver messageReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            int positionForUpdate = intent.getIntExtra("Position", -1);
-            if (positionForUpdate == position) {
-                Log.i(TAG, "Updating menu for position " + positionForUpdate);
-                update();
-            }
+            Log.i(TAG, "Updating menu for position " + position);
+            update();
         }
     };
 

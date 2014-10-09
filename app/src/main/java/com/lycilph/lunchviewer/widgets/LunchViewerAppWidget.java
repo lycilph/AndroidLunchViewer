@@ -1,4 +1,4 @@
-package com.lycilph.lunchviewer;
+package com.lycilph.lunchviewer.widgets;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -9,10 +9,13 @@ import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.google.gson.Gson;
+import com.lycilph.lunchviewer.R;
+import com.lycilph.lunchviewer.activities.MainActivity;
+import com.lycilph.lunchviewer.fragments.DataFragment;
+import com.lycilph.lunchviewer.models.WeekMenu;
+import com.lycilph.lunchviewer.models.WeekMenuItem;
 
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeComparator;
-import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalTime;
 
@@ -36,8 +39,9 @@ public class LunchViewerAppWidget extends AppWidgetProvider {
         String day = DateTime.now().dayOfWeek().getAsText();
         String date = DateTime.now().toLocalDate().toString();
 
-        WeekMenu[] menus = loadMenus(context);
-        String text = getCurrentMenuItemText(menus);
+        //WeekMenu[] menus = loadMenus(context);
+        //String text = getCurrentMenuItemText(menus);
+        String text = "ABC";
 
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.lunch_viewer_app_widget);
@@ -78,7 +82,7 @@ public class LunchViewerAppWidget extends AppWidgetProvider {
         return "No menu found";
     }
 
-    private static WeekMenu[] loadMenus(Context context) {
+    /*private static WeekMenu[] loadMenus(Context context) {
         File file = new File(context.getFilesDir(), DataFragment.FILENAME);
         if (file.exists()) {
             Log.i(TAG, "Reading saved file");
@@ -106,7 +110,7 @@ public class LunchViewerAppWidget extends AppWidgetProvider {
             Log.i(TAG, "No file found");
             return null;
         }
-    }
+    }*/
 }
 
 

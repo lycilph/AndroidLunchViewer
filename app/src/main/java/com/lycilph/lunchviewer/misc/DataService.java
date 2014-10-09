@@ -1,12 +1,14 @@
-package com.lycilph.lunchviewer;
+package com.lycilph.lunchviewer.misc;
 
-import android.app.Fragment;
 import android.content.Context;
-import android.os.Bundle;
+import android.content.Intent;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+import com.lycilph.lunchviewer.R;
+import com.lycilph.lunchviewer.models.WeekMenu;
+import com.lycilph.lunchviewer.models.WeekMenuItem;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,51 +16,27 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DataFragment extends Fragment {
-    public static final String FILENAME = "menus.txt";
-
+public class DataService {
     private static final String TAG = "DataFragment";
+    private static final String FILENAME = "menus.txt";
 
+    private Context ctx;
     private List<WeekMenu> menus;
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setRetainInstance(true);
-
-        Context ctx = getActivity().getApplicationContext();
-        try {
-            MobileServiceClient mobileClient = new MobileServiceClient("https://lunchviewer.azure-mobile.net/", "SVzovNQtJGFXALLJDUskHXIZqDSBwL46", ctx);
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-
-        loadData();
+    public DataService(Context context) {
+        ctx = context;
+        clearAllMenus();
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        saveData();
-    }
-
-    public WeekMenu getMenu(int position) {
-        return menus.get(position);
-    }
-
-    public void setMenu(int position, WeekMenu menu) {
-        menus.set(position, menu);
-    }
-
-    private void loadData() {
+    public List<WeekMenu> loadData() {
         Log.i(TAG, "Loading data");
 
         // Load file here and parse saved data
-        File file = new File(getActivity().getFilesDir(), FILENAME);
+        File file = new File(ctx.getFilesDir(), FILENAME);
         if (file.exists()) {
             Log.i(TAG, "Reading saved file");
 
@@ -83,15 +61,17 @@ public class DataFragment extends Fragment {
             menus = Arrays.asList(savedMenus);
         } else {
             Log.i(TAG, "No saved file found");
-            menus = Arrays.asList(new WeekMenu(), new WeekMenu(), new WeekMenu());
+            clearAllMenus();
         }
+
+        return menus;
     }
 
-    private void saveData() {
+    public void saveData() {
         Log.i(TAG, "Saving data");
 
         // Save data here
-        File file = new File(getActivity().getFilesDir(), FILENAME);
+        File file = new File(ctx.getFilesDir(), FILENAME);
         Gson gson = new Gson();
         String json = gson.toJson(menus);
         try {
@@ -102,5 +82,29 @@ public class DataFragment extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public boolean allEmpty() {
+        for (WeekMenu menu : menus) {
+            if (!menu.getItems().isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void clearAllMenus() {
+        menus = Arrays.asList(new WeekMenu(), new WeekMenu(), new WeekMenu());
+
+        Intent intent = new Intent(ctx.getString(R.string.data_changed_event));
+        LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);
+    }
+
+    public WeekMenu getMenu(int position) {
+        return menus.get(position);
+    }
+
+    public void setMenu(int position, WeekMenu menu) {
+        menus.set(position, menu);
     }
 }

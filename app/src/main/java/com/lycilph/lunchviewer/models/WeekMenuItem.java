@@ -1,4 +1,4 @@
-package com.lycilph.lunchviewer;
+package com.lycilph.lunchviewer.models;
 
 import com.google.gson.annotations.SerializedName;
 

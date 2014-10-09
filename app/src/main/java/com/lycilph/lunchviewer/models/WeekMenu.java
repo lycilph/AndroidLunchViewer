@@ -1,4 +1,4 @@
-package com.lycilph.lunchviewer;
+package com.lycilph.lunchviewer.models;
 
 import com.google.gson.annotations.SerializedName;
 
@@ -21,6 +21,12 @@ public class WeekMenu {
     private List<WeekMenuItem> items;
 
     public WeekMenu() {
+        this(0, 0);
+    }
+
+    public WeekMenu(int y, int w) {
+        setYear(y);
+        setWeek(w);
         items = new ArrayList<WeekMenuItem>();
     }
 
