@@ -12,11 +12,6 @@ import java.util.List;
 
 public class LogFragment extends ListFragment {
 
-    public static LogFragment newInstance() {
-        LogFragment fragment = new LogFragment();
-        return fragment;
-    }
-
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
      * fragment (e.g. upon screen orientation changes).
@@ -36,7 +31,7 @@ public class LogFragment extends ListFragment {
     public List<String> getLogItems() {
         ArrayList<String> items = new ArrayList<String>();
         try {
-            Process process = Runtime.getRuntime().exec("logcat -d -v time AzureService:V DownloadService:V *:S");
+            Process process = Runtime.getRuntime().exec("logcat -d -v time AzureService:V DownloadService:V PushNotificationHandler:V *:S");
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line;

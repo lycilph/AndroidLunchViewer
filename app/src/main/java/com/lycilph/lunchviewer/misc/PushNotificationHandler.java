@@ -23,6 +23,8 @@ public class PushNotificationHandler extends NotificationsHandler {
 
     @Override
     public void onReceive(Context context, Bundle bundle) {
+        Log.i(TAG, "Received push notification");
+
         String msg = bundle.getString("message");
         if (msg.equals(NEW_DATA_MESSAGE)) {
             Log.i(TAG, "Got 'new data' message");

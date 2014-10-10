@@ -145,7 +145,7 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
     }
 
     private void showLog() {
-        LogFragment lf = LogFragment.newInstance();
+        LogFragment lf = new LogFragment();
         getFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragment_container, lf)

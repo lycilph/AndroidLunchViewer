@@ -2,8 +2,12 @@
   <dictionary name="kbn_mml">
     <words>
       <w>guid</w>
+      <w>joda</w>
       <w>logcat</w>
+      <w>lunchviewer</w>
+      <w>lycilph</w>
       <w>webbrowser</w>
+      <w>windowsazure</w>
     </words>
   </dictionary>
 </component>
