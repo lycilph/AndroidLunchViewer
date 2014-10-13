@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.lycilph.lunchviewer.R;
+import com.lycilph.lunchviewer.misc.DateUtils;
 import com.lycilph.lunchviewer.models.WeekMenuItem;
 
 import org.joda.time.DateTime;
@@ -28,9 +29,7 @@ public class WeekMenuItemAdapter extends ArrayAdapter<WeekMenuItem> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         View v = convertView;
-        // First let's verify the convertView is not null
         if (convertView == null) {
-            // This a new view we inflate the new layout
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             v = inflater.inflate(R.layout.week_menu_item_layout, null);
         }
@@ -44,11 +43,8 @@ public class WeekMenuItemAdapter extends ArrayAdapter<WeekMenuItem> {
         TextView textTv = (TextView) v.findViewById(R.id.text);
         textTv.setText(item.getText());
 
-        LocalTime lunchEnd = DateTime.now().withTime(13, 15, 0, 0).toLocalTime();
-        LocalTime now = DateTime.now().toLocalTime();
-        LocalDate nextLunchDate = (lunchEnd.isBefore(now) ? DateTime.now().plusDays(1).toLocalDate() : DateTime.now().toLocalDate());
-
-        if (nextLunchDate.compareTo(item.getDate()) == 0) {
+        LocalDate nextValidDate = DateUtils.getNextValidDate();
+        if (nextValidDate.compareTo(item.getDate()) == 0) {
             LinearLayout ll = (LinearLayout) v.findViewById(R.id.selection_bar);
             ll.setVisibility(View.VISIBLE);
         }

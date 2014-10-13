@@ -107,6 +107,8 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
         DataService dataService = getDataService();
         if (dataService.allEmpty()) {
             getAzureService().updateAllMenus();
+        } else {
+            dataService.updateMenus();
         }
 
         NotificationsManager.handleNotifications(this, SENDER_ID, PushNotificationHandler.class);

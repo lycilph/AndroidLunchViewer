@@ -10,6 +10,9 @@ import com.lycilph.lunchviewer.R;
 import com.lycilph.lunchviewer.models.WeekMenu;
 import com.lycilph.lunchviewer.models.WeekMenuItem;
 
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -18,6 +21,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 public class DataService {
@@ -84,6 +88,36 @@ public class DataService {
         }
     }
 
+    public void updateMenus() {
+        boolean dataChanged = false;
+
+        // Update previous menu
+        int previousWeekNumber = DateUtils.getWeekNumber(-1);
+        if (menus.get(0).getWeek() != previousWeekNumber) {
+            menus.set(0, getMenuForWeek(previousWeekNumber));
+            dataChanged = true;
+        }
+
+        // Update current menu
+        int currentWeekNumber = DateUtils.getWeekNumber(0);
+        if (menus.get(1).getWeek() != currentWeekNumber) {
+            menus.set(1, getMenuForWeek(currentWeekNumber));
+            dataChanged = true;
+        }
+
+        // Update next menu
+        int nextWeekNumber = DateUtils.getWeekNumber(1);
+        if (menus.get(2).getWeek() != nextWeekNumber) {
+            menus.set(2, new WeekMenu(DateUtils.getYear(), nextWeekNumber));
+            dataChanged = true;
+        }
+
+        if (dataChanged) {
+            Intent intent = new Intent(ctx.getString(R.string.data_changed_event));
+            LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);
+        }
+    }
+
     public boolean allEmpty() {
         for (WeekMenu menu : menus) {
             if (!menu.getItems().isEmpty()) {
@@ -98,6 +132,27 @@ public class DataService {
 
         Intent intent = new Intent(ctx.getString(R.string.data_changed_event));
         LocalBroadcastManager.getInstance(ctx).sendBroadcast(intent);
+    }
+
+    public WeekMenu getMenuForWeek(int weekNumber) {
+        for (WeekMenu menu : menus) {
+            if (menu.getWeek() == weekNumber)
+                return menu;
+        }
+
+        int year = DateTime.now().year().get();
+        return new WeekMenu(year, weekNumber);
+    }
+
+    public WeekMenuItem getMenuItemForDate(LocalDate nextDate) {
+        for (WeekMenu menu : menus) {
+            for (WeekMenuItem item : menu.getItems()) {
+                if (nextDate.compareTo(item.getDate()) == 0) {
+                    return item;
+                }
+            }
+        }
+        return null;
     }
 
     public WeekMenu getMenu(int position) {

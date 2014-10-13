@@ -6,6 +6,7 @@
     <string name="action_refresh">Refresh</string>
     <string name="action_clear">Clear</string>
     <string name="action_log">Log</string>
+    <string name="action_refresh_log">Refresh</string>
 
     <string name="previous_week_label">Previous</string>
     <string name="current_week_label">Current</string>

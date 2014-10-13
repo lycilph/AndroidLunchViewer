@@ -4,9 +4,8 @@
     android:minWidth="180dp"
     android:minHeight="40dp"
     android:updatePeriodMillis="3600000"
-    android:previewImage="@drawable/example_appwidget_preview"
+    android:previewImage="@drawable/lunch_viewer_widget_preview"
     android:initialLayout="@layout/lunch_viewer_app_widget"
+    android:initialKeyguardLayout="@layout/lunch_viewer_app_widget"
     android:resizeMode="horizontal"
-    android:widgetCategory="home_screen|keyguard"
-    android:initialKeyguardLayout="@layout/lunch_viewer_app_widget">
-</appwidget-provider>
+    android:widgetCategory="home_screen|keyguard"/>

@@ -1,0 +1,12 @@
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".LogFragment" >
+
+    <item
+        android:id="@+id/action_refresh_log"
+        android:title="@string/action_refresh_log"
+        android:icon="@drawable/ic_action_navigation_refresh"
+        android:orderInCategory="100"
+        android:showAsAction="always" />
+</menu>
