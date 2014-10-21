@@ -41,6 +41,15 @@ public class LogFragment extends ListFragment {
         inflater.inflate(R.menu.log, menu);
     }
 
+
+    @Override
+    public void onResume() {
+        String title = String.format("%s - Log", getString(R.string.app_name));
+        getActivity().setTitle(title);
+
+        super.onResume();
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();

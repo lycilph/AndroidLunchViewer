@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="Settings">
+        <CheckBoxPreference
+            android:title="Show Log menu item"
+            android:key="pref_key_show_log_menu_item"
+            android:defaultValue="false"/>
+        <CheckBoxPreference
+            android:title="Show Clear menu item"
+            android:key="pref_key_show_clear_menu_item"
+            android:defaultValue="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="About">
+        <Preference
+            android:title="@string/app_name"
+            android:summary="@string/app_summary"/>
+    </PreferenceCategory>
+</PreferenceScreen>

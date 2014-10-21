@@ -5,10 +5,12 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -16,6 +18,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -24,8 +28,12 @@ import com.lycilph.lunchviewer.R;
 import java.util.Arrays;
 import java.util.List;
 
-public class NavigationDrawerFragment extends Fragment {
+public class NavigationDrawerFragment extends Fragment implements ListView.OnItemClickListener {
+    private static final String TAG = "NavigationDrawerFragment";
+
     private static final String PREF_USER_LEARNED_DRAWER = "navigation_drawer_learned";
+
+    private OnNavigationDrawerInteractionListener listener;
 
     private ActionBarDrawerToggle drawerToggle;
     private DrawerLayout drawerLayout;
@@ -55,14 +63,16 @@ public class NavigationDrawerFragment extends Fragment {
         View v = inflater.inflate(R.layout.fragment_navigation_drawer, container, false);
 
         List<String> items = Arrays.asList(getResources().getStringArray(R.array.navigation_sections));
-        ListView firstListView = (ListView) v.findViewById(R.id.sections_list);
-        firstListView.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, items));
+        ListView sectionsListView = (ListView) v.findViewById(R.id.sections_list);
+        sectionsListView.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, items));
+        sectionsListView.setOnItemClickListener(this);
 
         List<String> subItems = Arrays.asList(getResources().getStringArray(R.array.navigation_options));
-        ListView secondListView = (ListView) v.findViewById(R.id.options_list);
-        secondListView.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, subItems));
-        secondListView.addHeaderView(new View(getActivity()), null, true);
-        secondListView.addFooterView(new View(getActivity()), null, true);
+        ListView optionsListView = (ListView) v.findViewById(R.id.options_list);
+        optionsListView.setAdapter(new ArrayAdapter<String>(getActivity(), android.R.layout.simple_list_item_1, android.R.id.text1, subItems));
+        optionsListView.addHeaderView(new View(getActivity()), null, true);
+        optionsListView.addFooterView(new View(getActivity()), null, true);
+        optionsListView.setOnItemClickListener(this);
 
         return v;
     }
@@ -71,17 +81,17 @@ public class NavigationDrawerFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            //mListener = (OnFragmentInteractionListener) activity;
+            listener = (OnNavigationDrawerInteractionListener) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement OnFragmentInteractionListener");
+                    + " must implement OnNavigationDrawerInteractionListener");
         }
     }
 
     @Override
     public void onDetach() {
         super.onDetach();
-        //mListener = null;
+        listener = null;
     }
 
     @Override
@@ -142,9 +152,7 @@ public class NavigationDrawerFragment extends Fragment {
                     return;
                 }
 
-                // Restore title
-                getActivity().setTitle(title);
-
+                //getActivity().setTitle(title); // Restore title
                 getActivity().invalidateOptionsMenu(); // calls onPrepareOptionsMenu()
             }
 
@@ -165,8 +173,7 @@ public class NavigationDrawerFragment extends Fragment {
 
                 // Save the title, so that it can be restored, when drawer closes
                 title = getActivity().getTitle().toString();
-                // Set "global" context title
-                getActivity().setTitle(getString(R.string.app_name));
+                getActivity().setTitle(getString(R.string.app_name)); // Set "global" context title
 
                 getActivity().invalidateOptionsMenu(); // calls onPrepareOptionsMenu()
             }
@@ -193,8 +200,41 @@ public class NavigationDrawerFragment extends Fragment {
         drawerToggle.setDrawerIndicatorEnabled(backStackEntryCount == 0);
     }
 
-    /*public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
-        public void onFragmentInteraction(Uri uri);
-    }*/
+    @Override
+    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+        drawerLayout.closeDrawer(fragmentContainerView);
+
+        View parent = (View) view.getParent();
+        if (parent.getId() == R.id.options_list) {
+            switch (i) {
+                case 1: {
+                    listener.onNavigationInteraction(R.id.action_settings);
+                    break;
+                }
+                case 2: {
+                    listener.onNavigationInteraction(R.id.action_about);
+                    break;
+                }
+            }
+        } else {
+            switch (i) {
+                case 0: {
+                    listener.onNavigationInteraction(R.id.action_home);
+                    break;
+                }
+                case 1: {
+                    listener.onNavigationInteraction(R.id.action_today);
+                    break;
+                }
+                case 2: {
+                    listener.onNavigationInteraction(R.id.action_next);
+                    break;
+                }
+            }
+        }
+    }
+
+    public interface OnNavigationDrawerInteractionListener {
+        public void onNavigationInteraction(int id);
+    }
 }

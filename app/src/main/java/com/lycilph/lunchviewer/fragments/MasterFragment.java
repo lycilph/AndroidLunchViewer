@@ -21,6 +21,7 @@ public class MasterFragment extends Fragment implements ViewPager.OnPageChangeLi
     private static final String TAG = "MasterFragment";
 
     private WeekMenuPagerAdapter pagerAdapter;
+    private ViewPager viewPager;
 
     public static MasterFragment newInstance() {
         return new MasterFragment();
@@ -42,14 +43,17 @@ public class MasterFragment extends Fragment implements ViewPager.OnPageChangeLi
 
         View view = inflater.inflate(R.layout.fragment_master, container, false);
 
-        ViewPager viewPager = (ViewPager) view.findViewById(R.id.pager);
+        viewPager = (ViewPager) view.findViewById(R.id.pager);
         viewPager.setAdapter(pagerAdapter);
-        viewPager.setCurrentItem(1);
         viewPager.setOnPageChangeListener(this);
 
-        onPageSelected(1);
+        showItem(1);
 
         return view;
+    }
+
+    public void showItem(int i) {
+        viewPager.setCurrentItem(i);
     }
 
     @Override
@@ -71,7 +75,6 @@ public class MasterFragment extends Fragment implements ViewPager.OnPageChangeLi
 
     @Override
     public void onPageScrollStateChanged(int i) {
-
     }
 
     public class WeekMenuPagerAdapter extends FragmentPagerAdapter {

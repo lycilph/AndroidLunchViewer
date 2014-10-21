@@ -155,6 +155,30 @@ public class DataService {
         return null;
     }
 
+    public int getPositionForDate(LocalDate date) {
+        for (int i = 0; i < menus.size(); i++) {
+            WeekMenu weekMenu = menus.get(i);
+            for (int j = 0; j < weekMenu.getItems().size(); j++) {
+                WeekMenuItem weekMenuItem = weekMenu.getItem(j);
+                if (weekMenuItem.getDate().compareTo(date) == 0)
+                    return i;
+            }
+        }
+        return -1;
+    }
+
+    public int getItemIndexForDate(LocalDate date) {
+        for (int i = 0; i < menus.size(); i++) {
+            WeekMenu weekMenu = menus.get(i);
+            for (int j = 0; j < weekMenu.getItems().size(); j++) {
+                WeekMenuItem weekMenuItem = weekMenu.getItem(j);
+                if (weekMenuItem.getDate().compareTo(date) == 0)
+                    return j;
+            }
+        }
+        return -1;
+    }
+
     public WeekMenu getMenu(int position) {
         return menus.get(position);
     }

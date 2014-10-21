@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
@@ -21,13 +22,22 @@ import com.lycilph.lunchviewer.fragments.DetailsFragment;
 import com.lycilph.lunchviewer.fragments.LogFragment;
 import com.lycilph.lunchviewer.fragments.MasterFragment;
 import com.lycilph.lunchviewer.fragments.NavigationDrawerFragment;
+import com.lycilph.lunchviewer.fragments.SettingsFragment;
 import com.lycilph.lunchviewer.fragments.WeekMenuFragment;
 import com.lycilph.lunchviewer.misc.AzureService;
 import com.lycilph.lunchviewer.misc.DataService;
+import com.lycilph.lunchviewer.misc.DateUtils;
 import com.lycilph.lunchviewer.misc.PushNotificationHandler;
 import com.microsoft.windowsazure.notifications.NotificationsManager;
 
-public class MainActivity extends Activity implements FragmentManager.OnBackStackChangedListener, WeekMenuFragment.OnItemSelectedListener {
+import org.joda.time.DateTime;
+import org.joda.time.LocalDate;
+
+public class MainActivity
+        extends Activity
+        implements FragmentManager.OnBackStackChangedListener,
+                   WeekMenuFragment.OnItemSelectedListener,
+                   NavigationDrawerFragment.OnNavigationDrawerInteractionListener {
     private static final String TAG = "MainActivity";
     private static final String SENDER_ID = "449754482340";
 
@@ -69,6 +79,23 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        if (menu != null && !SettingsFragment.getShowLog(this)) {
+            MenuItem item = menu.findItem(R.id.action_log);
+            if (item != null)
+                item.setVisible(false);
+        }
+
+        if (menu != null && !SettingsFragment.getShowClear(this)) {
+            MenuItem item = menu.findItem(R.id.action_clear);
+            if (item != null)
+                item.setVisible(false);
+        }
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
@@ -90,8 +117,42 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
                 showLog();
                 return true;
             }
+            case R.id.action_settings: {
+                showSettings();
+                return true;
+            }
+            case R.id.action_about: {
+                showAbout();
+                return true;
+            }
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onNavigationInteraction(int id) {
+        switch (id) {
+            case R.id.action_home: {
+                showHome();
+                break;
+            }
+            case R.id.action_today: {
+                showToday();
+                break;
+            }
+            case R.id.action_next: {
+                showNext();
+                break;
+            }
+            case R.id.action_settings: {
+                showSettings();
+                break;
+            }
+            case R.id.action_about: {
+                showAbout();
+                break;
+            }
+        }
     }
 
     @Override
@@ -152,6 +213,26 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
 
     }
 
+    private void showHome() {
+        MasterFragment f = (MasterFragment) getFragmentManager().findFragmentById(R.id.fragment_container);
+        f.showItem(1);
+    }
+
+    private void showToday() {
+        int index = DateTime.now().dayOfWeek().get() - 1;
+        onItemSelected(1, index);
+    }
+
+    private void showNext() {
+        LocalDate nextDate = DateUtils.getNextValidDate();
+        int position = getDataService().getPositionForDate(nextDate);
+        int item = getDataService().getItemIndexForDate(nextDate);
+
+        if (position > -1 && item > -1) {
+            onItemSelected(position, item);
+        }
+    }
+
     private void showLog() {
         LogFragment lf = new LogFragment();
         getFragmentManager()
@@ -159,6 +240,19 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
                 .replace(R.id.fragment_container, lf)
                 .addToBackStack(null)
                 .commit();
+    }
+
+    private void showSettings() {
+        SettingsFragment f = new SettingsFragment();
+        getFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, f)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void showAbout() {
+        // Implement this
     }
 
     private void updateActionBar() {
