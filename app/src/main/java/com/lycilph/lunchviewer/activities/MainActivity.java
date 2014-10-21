@@ -20,6 +20,7 @@ import com.lycilph.lunchviewer.fragments.DataFragment;
 import com.lycilph.lunchviewer.fragments.DetailsFragment;
 import com.lycilph.lunchviewer.fragments.LogFragment;
 import com.lycilph.lunchviewer.fragments.MasterFragment;
+import com.lycilph.lunchviewer.fragments.NavigationDrawerFragment;
 import com.lycilph.lunchviewer.fragments.WeekMenuFragment;
 import com.lycilph.lunchviewer.misc.AzureService;
 import com.lycilph.lunchviewer.misc.DataService;
@@ -32,6 +33,7 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
 
     private ProgressBar progressBar;
     private DataFragment dataFragment;
+    private NavigationDrawerFragment navigationFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +54,9 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
         } else {
             Log.i(TAG, "Retained data fragment found");
         }
+
+        navigationFragment = (NavigationDrawerFragment) getFragmentManager().findFragmentById(R.id.navigation_drawer);
+        navigationFragment.setUp();
 
         if (savedInstanceState == null) {
             Log.i(TAG, "Creating new master fragment");
@@ -102,7 +107,7 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
         broadcastManager.registerReceiver(updateFinishedMessageReceiver, new IntentFilter(updateFinishedEventName));
 
         getFragmentManager().addOnBackStackChangedListener(this);
-        shouldDisplayHome();
+        updateActionBar();
 
         DataService dataService = getDataService();
         if (dataService.allEmpty()) {
@@ -127,7 +132,7 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
 
     @Override
     public void onBackStackChanged() {
-        shouldDisplayHome();
+        updateActionBar();
     }
 
     @Override
@@ -144,6 +149,7 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
                 .replace(R.id.fragment_container, df)
                 .addToBackStack(null)
                 .commit();
+
     }
 
     private void showLog() {
@@ -155,10 +161,11 @@ public class MainActivity extends Activity implements FragmentManager.OnBackStac
                 .commit();
     }
 
-    @SuppressWarnings("ConstantConditions")
-    private void shouldDisplayHome() {
-        boolean canBack = getFragmentManager().getBackStackEntryCount() > 0;
-        getActionBar().setDisplayHomeAsUpEnabled(canBack);
+    private void updateActionBar() {
+        int backStackEntryCount = getFragmentManager().getBackStackEntryCount();
+        Log.i(TAG, "Backstack count = " + backStackEntryCount);
+
+        navigationFragment.updateActionBar(backStackEntryCount);
     }
 
     public AzureService getAzureService() {

@@ -30,9 +30,6 @@ public class LunchViewerAppWidget extends AppWidgetProvider {
     private static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
         Log.i(TAG, "Updating widget");
 
-        String day = DateTime.now().dayOfWeek().getAsText();
-        String date = DateTime.now().toLocalDate().toString();
-
         // Load data
         DataService dataService = new DataService(context);
         dataService.loadData();
@@ -40,9 +37,9 @@ public class LunchViewerAppWidget extends AppWidgetProvider {
         LocalDate nextDate = DateUtils.getNextValidDate();
         WeekMenuItem item = dataService.getMenuItemForDate(nextDate);
 
-        String text = "No menu found!";
-        if (item != null)
-            text = item.getText();
+        String day = nextDate.dayOfWeek().getAsText();
+        String date = nextDate.toString();
+        String text = (item == null ? "No menu found!" : item.getText());
 
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.lunch_viewer_app_widget);

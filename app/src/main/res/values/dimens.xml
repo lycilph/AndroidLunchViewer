@@ -7,5 +7,6 @@
     <dimen name="separator_vertical_margin">32dp</dimen>
     <dimen name="separator_horizontal_margin">16dp</dimen>
     <dimen name="widget_margin">8dp</dimen>
+    <dimen name="navigation_drawer_width">240dp</dimen>
 
 </resources>

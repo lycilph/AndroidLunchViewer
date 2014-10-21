@@ -20,6 +20,7 @@ import android.widget.TextView;
 
 import com.lycilph.lunchviewer.R;
 import com.lycilph.lunchviewer.misc.DataService;
+import com.lycilph.lunchviewer.misc.DateUtils;
 import com.lycilph.lunchviewer.models.WeekMenu;
 import com.lycilph.lunchviewer.models.WeekMenuItem;
 import com.lycilph.lunchviewer.adapters.WeekMenuItemAdapter;

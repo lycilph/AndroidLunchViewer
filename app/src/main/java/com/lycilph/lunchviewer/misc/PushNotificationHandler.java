@@ -16,6 +16,8 @@ public class PushNotificationHandler extends NotificationsHandler {
     @Override
     public void onRegistered(Context context, String gcmRegistrationId)
     {
+        Log.i(TAG, "Registered push notification handler");
+
         super.onRegistered(context, gcmRegistrationId);
         MainActivity mainActivity = (MainActivity) context;
         mainActivity.getAzureService().registerForPush(gcmRegistrationId);

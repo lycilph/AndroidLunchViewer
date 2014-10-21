@@ -36,12 +36,15 @@ public class AzureService {
     private boolean[] status;
 
     public AzureService(Context context, DataService dataService) {
+        Log.i(TAG, "AzureService constructor");
+
         this.context = context;
         this.dataService = dataService;
 
         status = new boolean[3];
 
         try {
+            Log.i(TAG, "Creating mobile service client");
             //noinspection SpellCheckingInspection
             mobileClient = new MobileServiceClient("https://lunchviewer.azure-mobile.net/", "aTdlxVHCxVFVJRZUavPFzofedYUkyl29", context);
             menuTable = mobileClient.getTable("Menu", WeekMenu.class);
@@ -56,6 +59,7 @@ public class AzureService {
             @Override
             public void onRegister(Registration registration, Exception exception) {
                 if (exception != null) {
+                    Log.e(TAG, "Registration exception: " + exception.getMessage());
                     exception.printStackTrace();
                 }
                 Log.i(TAG, String.format("Registration of push notifications done [%s]", gcmRegistrationId));
@@ -114,6 +118,8 @@ public class AzureService {
                    .and().field("year").eq(year)
                 .execute(new TableQueryCallback<WeekMenu>() {
                     public void onCompleted(List<WeekMenu> result, int count, Exception exception, ServiceFilterResponse response) {
+                        Log.i(TAG, "Download execute done");
+
                         if (exception == null) {
                             if (result.isEmpty()) {
                                 Log.i(TAG, "No menu found for " + datePart);
@@ -129,7 +135,7 @@ public class AzureService {
 
                             updateDone(position, result.get(0));
                         } else {
-                            Log.e(TAG, exception.getMessage());
+                            Log.e(TAG, "Download error: " + exception.getMessage());
                             exception.printStackTrace();
                         }
                     }
