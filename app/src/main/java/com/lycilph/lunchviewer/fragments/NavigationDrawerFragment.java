@@ -125,6 +125,10 @@ public class NavigationDrawerFragment extends Fragment implements ListView.OnIte
         return drawerLayout != null && drawerLayout.isDrawerOpen(fragmentContainerView);
     }
 
+    public void closeDrawer() {
+        drawerLayout.closeDrawer(fragmentContainerView);
+    }
+
     public void setUp() {
         fragmentContainerView = getActivity().findViewById(R.id.navigation_drawer);
         drawerLayout = (DrawerLayout) getActivity().findViewById(R.id.navigation_drawer_layout);

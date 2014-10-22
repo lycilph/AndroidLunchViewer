@@ -23,6 +23,7 @@ import com.lycilph.lunchviewer.fragments.LogFragment;
 import com.lycilph.lunchviewer.fragments.MasterFragment;
 import com.lycilph.lunchviewer.fragments.NavigationDrawerFragment;
 import com.lycilph.lunchviewer.fragments.SettingsFragment;
+import com.lycilph.lunchviewer.fragments.WebviewFragment;
 import com.lycilph.lunchviewer.fragments.WeekMenuFragment;
 import com.lycilph.lunchviewer.misc.AzureService;
 import com.lycilph.lunchviewer.misc.DataService;
@@ -103,6 +104,8 @@ public class MainActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        navigationFragment.closeDrawer();
+
         int id = item.getItemId();
         switch (id) {
             case R.id.action_refresh: {
@@ -219,11 +222,21 @@ public class MainActivity
     }
 
     private void showToday() {
+        if (getDataService().allEmpty()) {
+            Toast.makeText(this, "No menus found for today", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         int index = DateTime.now().dayOfWeek().get() - 1;
         onItemSelected(1, index);
     }
 
     private void showNext() {
+        if (getDataService().allEmpty()) {
+            Toast.makeText(this, "No menus found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         LocalDate nextDate = DateUtils.getNextValidDate();
         int position = getDataService().getPositionForDate(nextDate);
         int item = getDataService().getItemIndexForDate(nextDate);
@@ -252,7 +265,12 @@ public class MainActivity
     }
 
     private void showAbout() {
-        // Implement this
+        WebviewFragment f = new WebviewFragment();
+        getFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, f)
+                .addToBackStack(null)
+                .commit();
     }
 
     private void updateActionBar() {

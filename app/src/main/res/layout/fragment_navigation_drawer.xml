@@ -22,18 +22,17 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="@dimen/navigation_drawer_header_vertical_margin"
             android:text="@string/app_name"
             android:gravity="center_horizontal"
-            android:textColor="@android:color/holo_blue_dark"
             style="@android:style/TextAppearance.Large"/>
     </FrameLayout>
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingLeft="@dimen/navigation_drawer_horizontal_margin"
+        android:paddingRight="@dimen/navigation_drawer_horizontal_margin"
         android:text="@string/navigation_header"
         android:gravity="start"
         style="@android:style/TextAppearance.Large"/>
@@ -42,8 +41,8 @@
         android:id="@+id/sections_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingLeft="@dimen/navigation_drawer_horizontal_margin"
+        android:paddingRight="@dimen/navigation_drawer_horizontal_margin"
         android:choiceMode="singleChoice"
         android:drawSelectorOnTop="false"
         android:listSelector="@android:color/transparent"
@@ -54,8 +53,8 @@
         android:id="@+id/options_list"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingLeft="@dimen/navigation_drawer_horizontal_margin"
+        android:paddingRight="@dimen/navigation_drawer_horizontal_margin"
         android:background="@android:color/darker_gray"
         android:choiceMode="singleChoice"/>
 </LinearLayout>

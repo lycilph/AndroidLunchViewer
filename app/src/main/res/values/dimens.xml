@@ -11,5 +11,7 @@
     <dimen name="widget_margin">8dp</dimen>
 
     <dimen name="navigation_drawer_width">240dp</dimen>
+    <dimen name="navigation_drawer_horizontal_margin">16dp</dimen>
+    <dimen name="navigation_drawer_header_vertical_margin">20dp</dimen>
 
 </resources>

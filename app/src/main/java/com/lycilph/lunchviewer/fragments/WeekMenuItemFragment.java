@@ -44,14 +44,15 @@ public class WeekMenuItemFragment extends Fragment implements View.OnClickListen
             position = getArguments().getInt(ARG_POSITION);
             item = getArguments().getInt(ARG_ITEM);
         }
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_week_menu_item, container, false);
 
         MainActivity mainActivity = (MainActivity) getActivity();
         DataService dataService = mainActivity.getDataService();
         weekMenuItem = dataService.getMenu(position).getItem(item);
-    }
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_week_menu_item, container, false);
 
         String day = weekMenuItem.getDate().dayOfWeek().getAsText();
         String date = weekMenuItem.getDate().toString();
