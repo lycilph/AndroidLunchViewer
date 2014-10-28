@@ -14,6 +14,20 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:title="Developer options">
+        <SwitchPreference
+            android:title="Enable"
+            android:summary="Turn developer mode on and off"
+            android:key="pref_key_enable_developer_mode"
+            android:defaultValue="false"/>
+        <CheckBoxPreference
+            android:title="Show command api"
+            android:key="pref_key_show_command_api"
+            android:dependency="pref_key_enable_developer_mode"
+            android:defaultValue="false"/>
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:title="About">
         <Preference
             android:title="@string/app_name"

@@ -7,12 +7,14 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.webkit.WebView;
+import android.widget.Button;
 
 import com.lycilph.lunchviewer.R;
+import com.lycilph.lunchviewer.activities.MainActivity;
+import com.lycilph.lunchviewer.misc.AzureService;
 
-public class WebviewFragment extends Fragment {
-    public WebviewFragment() {
+public class CommandFragment extends Fragment implements Button.OnClickListener {
+    public CommandFragment() {
     }
 
     @Override
@@ -30,10 +32,10 @@ public class WebviewFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.fragment_webview, container, false);
+        View v = inflater.inflate(R.layout.fragment_command, container, false);
 
-        WebView webView = (WebView)v.findViewById(R.id.webview);
-        webView.loadUrl("file:///android_asset/about.html");
+        Button sendNotificationButton = (Button) v.findViewById(R.id.action_send_notification);
+        sendNotificationButton.setOnClickListener(this);
 
         return v;
     }
@@ -43,5 +45,13 @@ public class WebviewFragment extends Fragment {
         super.onResume();
 
         getActivity().setTitle(getString(R.string.app_name));
+    }
+
+    @Override
+    public void onClick(View view) {
+        MainActivity mainActivity = (MainActivity) getActivity();
+        AzureService azureService = mainActivity.getAzureService();
+
+        azureService.sendCommand(getString(R.string.command_send_notification));
     }
 }

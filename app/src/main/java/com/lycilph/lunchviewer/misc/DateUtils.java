@@ -9,19 +9,17 @@ public class DateUtils {
     public static LocalDate getNextValidDate() {
         LocalTime lunchEnd = DateTime.now().withTime(13, 15, 0, 0).toLocalTime();
         LocalTime now = DateTime.now().toLocalTime();
+        int dayOfWeek = DateTime.now().toLocalDate().dayOfWeek().get();
 
-        if (now.isBefore(lunchEnd))
-            return DateTime.now().toLocalDate();
-
-        LocalDate nextDay = DateTime.now().plusDays(1).toLocalDate();
-        int dayOfWeek = nextDay.dayOfWeek().get();
-
-        if (dayOfWeek < 6)
-            return nextDay;
-        else {
+        if (dayOfWeek > 5) {
             LocalDate mondayOfNextWeek = DateTime.now().plusWeeks(1).withDayOfWeek(DateTimeConstants.MONDAY).toLocalDate();
             return mondayOfNextWeek;
         }
+
+        if (now.isBefore(lunchEnd))
+            return DateTime.now().toLocalDate();
+        else
+            return DateTime.now().plusDays(1).toLocalDate();
     }
 
     public static int getYear() {

@@ -4,10 +4,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+import android.util.Pair;
+import android.widget.Toast;
 
+import com.google.gson.JsonElement;
 import com.lycilph.lunchviewer.R;
 import com.lycilph.lunchviewer.models.WeekMenu;
 import com.lycilph.lunchviewer.models.WeekMenuItem;
+import com.microsoft.windowsazure.mobileservices.ApiJsonOperationCallback;
+import com.microsoft.windowsazure.mobileservices.ApiOperationCallback;
 import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
 import com.microsoft.windowsazure.mobileservices.MobileServiceQuery;
 import com.microsoft.windowsazure.mobileservices.MobileServiceTable;
@@ -148,5 +153,18 @@ public class AzureService {
                 return false;
         }
         return true;
+    }
+
+    public void sendCommand(final String command) {
+        List<Pair<String, String>> parameters = new ArrayList<Pair<String, String>>();
+        parameters.add(new Pair<String, String>("command", "SendNotification"));
+
+        mobileClient.invokeApi("Command", "Post", parameters, new ApiJsonOperationCallback() {
+            @Override
+            public void onCompleted(JsonElement jsonElement, Exception e, ServiceFilterResponse serviceFilterResponse) {
+                String message = (e == null ? String.format("Command %s sent", command) : "Error: " + e.getMessage());
+                Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

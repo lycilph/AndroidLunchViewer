@@ -23,14 +23,20 @@
         android:showAsAction="never" />
 
     <item
+        android:id="@+id/action_command_api"
+        android:title="@string/action_command_api"
+        android:orderInCategory="400"
+        android:showAsAction="never" />
+
+    <item
         android:id="@+id/action_settings"
         android:title="@string/action_settings"
-        android:orderInCategory="400"
+        android:orderInCategory="500"
         android:showAsAction="never"/>
 
     <item
         android:id="@+id/action_about"
         android:title="@string/action_about"
-        android:orderInCategory="500"
+        android:orderInCategory="600"
         android:showAsAction="never"/>
 </menu>

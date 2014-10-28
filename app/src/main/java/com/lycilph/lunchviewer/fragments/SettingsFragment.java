@@ -16,6 +16,8 @@ public class SettingsFragment extends PreferenceFragment {
 
     public static final String SHOW_LOG_PREFERENCE = "pref_key_show_log_menu_item";
     public static final String SHOW_CLEAR_PREFERENCE = "pref_key_show_clear_menu_item";
+    public static final String ENABLE_DEVELOPER_MODE_PREFERENCE = "pref_key_enable_developer_mode";
+    public static final String SHOW_COMMAND_API_PREFERENCE = "pref_key_show_command_api";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,5 +50,12 @@ public class SettingsFragment extends PreferenceFragment {
     public static boolean getShowClear(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return prefs.getBoolean(SHOW_CLEAR_PREFERENCE, false);
+    }
+
+    public static boolean getShowCommandAPI(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean enableDeveloperMode = prefs.getBoolean(ENABLE_DEVELOPER_MODE_PREFERENCE, false);
+        boolean showAPI = prefs.getBoolean(SHOW_COMMAND_API_PREFERENCE, false);
+        return enableDeveloperMode && showAPI;
     }
 }

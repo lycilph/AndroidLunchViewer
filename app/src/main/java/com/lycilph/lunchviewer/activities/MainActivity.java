@@ -17,6 +17,7 @@ import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.lycilph.lunchviewer.R;
+import com.lycilph.lunchviewer.fragments.CommandFragment;
 import com.lycilph.lunchviewer.fragments.DataFragment;
 import com.lycilph.lunchviewer.fragments.DetailsFragment;
 import com.lycilph.lunchviewer.fragments.LogFragment;
@@ -93,6 +94,12 @@ public class MainActivity
                 item.setVisible(false);
         }
 
+        if (menu != null && !SettingsFragment.getShowCommandAPI(this)) {
+            MenuItem item = menu.findItem(R.id.action_command_api);
+            if (item != null)
+                item.setVisible(false);
+        }
+
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -118,6 +125,10 @@ public class MainActivity
             }
             case R.id.action_log: {
                 showLog();
+                return true;
+            }
+            case R.id.action_command_api: {
+                showCommandApi();
                 return true;
             }
             case R.id.action_settings: {
@@ -251,6 +262,15 @@ public class MainActivity
         getFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragment_container, lf)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void showCommandApi() {
+        CommandFragment f = new CommandFragment();
+        getFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragment_container, f)
                 .addToBackStack(null)
                 .commit();
     }
